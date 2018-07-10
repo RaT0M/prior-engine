@@ -93,6 +93,30 @@ class SoilMoisturePriorCreator(PriorCreator):
 
         return self._provide_prior_file()
 
+    @property
+    def roi(self):
+        self._roi = shapely.wkt.loads(self.config['General']['roi'])
+        return self._roi
+
+    @classmethod
+    def calculate_api(self):
+        """Calculate antecedent precipitation index for region
+
+        have it as classmethod to allow for recalculation when initializing
+        prior engine.
+
+        :returns:
+        :rtype:
+
+        """
+        pass
+
+    def _get_recent_precipitation(self):
+        ROI_wkt = self.roi
+        # get precip file
+        # do something with
+        print(ROI_wkt)
+
     def _calc_climatological_prior(self):
         """
         Calculate climatological prior.
@@ -330,7 +354,7 @@ class SoilMoisturePriorCreator(PriorCreator):
             return res
         except Exception as e:
             logging.warning('Cannot create .vrt file'
-                           ' {} - returning {}.'.format(res, fn))
+                            ' {} - returning {}.'.format(res, fn))
             return '{}'.format(fn)
 
     def _check_gdal_compliance(self, fn):
@@ -354,7 +378,7 @@ class SoilMoisturePriorCreator(PriorCreator):
         lats = self.clim_data.variables['lat'][:]
         lons = self.clim_data.variables['lon'][:]
 
-        ROI_wkt = shapely.wkt.loads(self.config['General']['roi'])
+        ROI_wkt = self.roi
 
         # minx, miny, maxx, maxy:
         minx, miny, maxx, maxy = ROI_wkt.bounds
