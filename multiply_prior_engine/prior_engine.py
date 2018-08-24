@@ -16,7 +16,6 @@ import yaml
 from .soilmoisture_prior_creator import RoughnessPriorCreator, SoilMoisturePriorCreator
 from .vegetation_prior_creator import VegetationPriorCreator
 
-
 __author__ = ["Alexander Löw", "Thomas Ramsauer"]
 __copyright__ = "Copyright 2018, Thomas Ramsauer"
 __credits__ = "Alexander Löw"
