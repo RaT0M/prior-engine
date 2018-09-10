@@ -247,6 +247,9 @@ class SoilMoisturePriorCreator(PriorCreator):
         self._check_gdal_compliance(fn)
         return '{}'.format(fn)
 
+    # TODO @staticmethod?
+    # TODO create more advanced merging option.
+    # e.g. date based weight
     def _merge_multiple_prior_files(self, fn_list):
         """Merge files if more than one is available for current time step.
         should be obsolete.

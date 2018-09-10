@@ -10,7 +10,10 @@
 import logging
 import pkg_resources
 import os
-
+import tempfile
+import gdal
+import rasterio
+import numpy as np
 import yaml
 
 from .soilmoisture_prior_creator import RoughnessPriorCreator, SoilMoisturePriorCreator
@@ -189,6 +192,7 @@ class PriorEngine(object):
                                             datestr=self.datestr, var=var)
                 var_res.update({ptype: prior.compute_prior_file()})
 
+
             # Assertions in subengine are passed on here:
             # e.g. If no file is found: module should throw AssertionError
             except AssertionError as e:
@@ -199,7 +203,36 @@ class PriorEngine(object):
                 logging.error('{}: {}'.format(self.subengine[var], e.args[0]))
                 raise
 
-        return var_res
+        if len(var_res.keys()) > 1:
+            filename = self._merge_multiple_ptypes(var_res)
+            return filename
+
+        else:
+            return var_res
+
+    def _merge_multiple_ptypes(self, var_res: dict) -> str:
+        """Merge raster data for multiple prior typers per prior variable.
+
+        :param var_res: dicitonary of form 'ptype: file'
+        :returns: filename/url
+        :rtype: sting
+
+        """
+        files = []
+        for ptype in var_res.keys():
+            with rasterio.open(var_res[ptype]) as data:
+                files.append(data.read(1,2))
+
+        mean = np.mean([a[0] for a in files], axis=0)
+        unc = np.mean([a[1] for a in files], axis=0)
+
+        tf = tempfile.NamedTemporaryFile(suffix='.vrt', delete=False)
+
+        out_vrt = gdal.BuildVRT(tf, [mean, unc],
+                                separate=True)
+        logging.info(f'Created {tf} from following files: {files.values()}.')
+        return out_vrt
+
 
     def _concat_priors(self, prior_dict):
         """ Concatenate individual state vectors and covariance matrices
